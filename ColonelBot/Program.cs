@@ -28,12 +28,28 @@ namespace ColonelBot
 
             //ChipLookup.InitializeLibrary();
 
+            //Phase 1: Initial Configuration
             _client.UsingCommands(x =>
             {
                 //This lambda installs the Command Service on the bot.
                 x.PrefixChar = '!';
                 x.HelpMode = HelpMode.Public;
             });
+
+            _client.UsingAudio(x =>
+            {
+                x.Mode = AudioMode.Outgoing;
+                x.EnableEncryption = true;
+                x.Bitrate = AudioServiceConfig.MaxBitrate;
+                x.BufferLength = 10000;
+            });
+
+            
+
+            _client.AddService<Services.SettingsService>(); //Install the settings service to the bot.
+            _client.AddService<Services.HttpService>(); //Installs the Http service to the bot.
+
+            //Phase 2: Command Implementation
 
             _client.GetService<CommandService>().CreateGroup("lookup", cgb =>
             {
@@ -82,9 +98,31 @@ namespace ColonelBot
                     await e.Channel.SendFile(GetRandomFile("Images/savenettokun"));
                 });
 
+            _client.GetService<CommandService>().CreateCommand("barrelsan")
+                .Description("Honor Barryl the Immortal.")
+                .Do(async e =>
+                {
+                    await e.Channel.SendFile(FileTools.BotDirectory + "/Images/barrelsan.png");
+                });
+
+            _client.GetService<CommandService>().CreateCommand("hamachi")
+                .Description("Asks ColonelBot to Privately Message you the credentials to access the N1GP Hamachi Server.")
+                .Do(async e =>
+                {
+                    await e.User.SendMessage("<HAMACHI INFO PLACEHOLDER>"); //TODO: Extend FileTools to build this cleanly
+                });
+
+            _client.GetService<CommandService>().CreateCommand("welcome")
+                .Description("Provides you all the information you'll need to get started with Netbattling online. Welcome to N1GP!")
+                .Do(async e =>
+                {
+                    await e.User.SendMessage("<WELCOME KIT PLACEHOLDER>"); //TODO: Extend FileTools to build this cleanly
+                });
 
 
+            //Phase 3: Connect
             _client.ExecuteAndWait(async () => { await _client.Connect(System.IO.File.ReadAllText(FileTools.BotDirectory + "/Config/botKey.txt"), TokenType.Bot); });
+            _client.SetGame("in your PET.");
         }
 
 
