@@ -84,7 +84,7 @@ namespace ColonelBot
 
 
 
-            _client.ExecuteAndWait(async () => { await _client.Connect("MjQ5NjMyMDY5MjM4MzkwNzg0.C2uZmw.eZ_k5viOY-B0R43ajCyk0-GBAGE", TokenType.Bot); });
+            _client.ExecuteAndWait(async () => { await _client.Connect("TOKEN HERE!", TokenType.Bot); });
         }
 
 
