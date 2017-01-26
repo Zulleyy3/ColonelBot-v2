@@ -84,7 +84,7 @@ namespace ColonelBot
 
 
 
-            _client.ExecuteAndWait(async () => { await _client.Connect("TOKEN HERE!", TokenType.Bot); });
+            _client.ExecuteAndWait(async () => { await _client.Connect(System.IO.File.ReadAllText(FileTools.BotDirectory + "/Config/botKey.txt"), TokenType.Bot); });
         }
 
 
