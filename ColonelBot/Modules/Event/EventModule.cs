@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColonelBot.Modules
+namespace ColonelBot.Modules.Event
 {
-    class ProfileModule
+    class EventModule
     {
     }
 }

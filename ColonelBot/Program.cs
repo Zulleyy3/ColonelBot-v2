@@ -13,6 +13,8 @@ using Discord.Commands;
 using NAudio;
 using NAudio.Wave;
 using NAudio.CoreAudioApi;
+using ColonelBot.Modules.Profiles;
+using ColonelBot.Modules.Feeds;
 
 namespace ColonelBot
 {
@@ -48,6 +50,9 @@ namespace ColonelBot
 
             _client.AddService<Services.SettingsService>(); //Install the settings service to the bot.
             _client.AddService<Services.HttpService>(); //Installs the Http service to the bot.
+            _client.UsingModules();
+
+            _client.AddModule<ProfileModule>("Profiles", ModuleFilter.None);
 
             //Phase 2: Command Implementation
 

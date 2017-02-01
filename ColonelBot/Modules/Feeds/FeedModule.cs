@@ -18,7 +18,7 @@ namespace ColonelBot.Modules.Feeds
 {
     class FeedModule : IModule
     {
-        public class Artucle
+        public class Article
         {
             public string Title;
             public string Link;
@@ -49,11 +49,12 @@ namespace ColonelBot.Modules.Feeds
                         var settings = _settings.Load(e.Server);
                         Channel channel;
                         if (e.Args[1] != "")
-                            channel = await e.Server.FindChannels("reddit-feed", ChannelType.Text, true);
+                            await e.Channel.SendMessage("Test");
+                        //channel = await e.Server.FindChannels("reddit-feed", ChannelType.Text, true);
                         //TODO: Finish this crap
                         else
                             channel = e.Channel;
-                        if (channel == null) return;
+                        
 
                         
                     });
