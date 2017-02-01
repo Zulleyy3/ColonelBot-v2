@@ -57,7 +57,7 @@ namespace ColonelBot
             //Phase 2: Command Implementation
 
             _client.GetService<CommandService>().CreateGroup("lookup", cgb =>
-            {
+            {//TODO: Offload this to the Lookup Module
                 cgb.CreateCommand("chip")
                     .Description("Looks up a chip by name.")
                     .Parameter("ChipName", ParameterType.Required)
