@@ -53,7 +53,7 @@ namespace ColonelBot
             _client.UsingModules();
 
             _client.AddModule<ProfileModule>("Profiles", ModuleFilter.None);
-
+            _client.AddModule<FeedModule>("Feeds", ModuleFilter.None);
             //Phase 2: Command Implementation
 
             _client.GetService<CommandService>().CreateGroup("lookup", cgb =>
