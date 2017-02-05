@@ -102,8 +102,7 @@ namespace ColonelBot.Modules.Feeds
                             try
                             {
                                 var channel = _client.GetChannel(feed.Value.ChannelId);
-                                if (channel != null && channel.Server.CurrentUser.GetPermissions(channel).SendMessages)
-                                {
+                                
                                     var content = await _http.Send(HttpMethod.Get, feed.Key);
                                     var doc = XDocument.Load(await content.ReadAsStreamAsync());
                                     var rssNode = doc.Element("rss");
@@ -161,7 +160,7 @@ namespace ColonelBot.Modules.Feeds
                                             await _settings.Save(settings.Key, settings.Value);
                                         }
                                     };
-                                }
+                                
                             }
                             catch (Exception ex) when (!(ex is TaskCanceledException))
                             {

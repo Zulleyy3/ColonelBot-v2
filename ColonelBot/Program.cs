@@ -15,6 +15,7 @@ using NAudio.Wave;
 using NAudio.CoreAudioApi;
 using ColonelBot.Modules.Profiles;
 using ColonelBot.Modules.Feeds;
+using ColonelBot.Modules.Event;
 
 namespace ColonelBot
 {
@@ -54,6 +55,7 @@ namespace ColonelBot
 
             _client.AddModule<ProfileModule>("Profiles", ModuleFilter.None);
             _client.AddModule<FeedModule>("Feeds", ModuleFilter.None);
+            _client.AddModule<EventModule>("Event", ModuleFilter.None);
             //Phase 2: Command Implementation
 
             _client.GetService<CommandService>().CreateGroup("lookup", cgb =>
@@ -124,7 +126,7 @@ namespace ColonelBot
                     await e.User.SendMessage("<WELCOME KIT PLACEHOLDER>"); //TODO: Extend FileTools to build this cleanly
                 });
 
-
+            
             //Phase 3: Connect
             _client.ExecuteAndWait(async () => { await _client.Connect(System.IO.File.ReadAllText(FileTools.BotDirectory + "/Config/botKey.txt"), TokenType.Bot); });
             _client.SetGame("in your PET.");
