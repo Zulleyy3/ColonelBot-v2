@@ -50,6 +50,8 @@ namespace ColonelBot.Modules.Event
                         {
                             Console.WriteLine("Added registration to event.");
                             await _settings.Save(e.Server, settings);
+                            await e.User.AddRoles(e.Server.GetRole(203848231803813889));
+
                             await e.Channel.SendMessage("You are registered for " + settings.CurrentEventTitle + " successfully.");
                         }
                         else
@@ -67,15 +69,34 @@ namespace ColonelBot.Modules.Event
                         if (settings.RemoveRegistration(e.User.Id.ToString()))
                         {
                             await e.Channel.SendMessage("You have been removed from " + settings.CurrentEventTitle);
+                            await e.User.RemoveRoles(e.Server.GetRole(203848231803813889));
                             await _settings.Save(e.Server, settings);
                         }
                         else
                         {
                             await e.Channel.SendMessage("You're not enrolled in the current event.");
                         }
-                        await e.Channel.SendMessage("TEST");
+                        
                     });
-                group.CreateCommand("title")
+
+                group.CreateGroup("admin", grp =>
+                {
+
+                    grp.CreateCommand("end")
+                        .Description("Ends the event, dropping all participants.")
+                        .Do(async e =>
+                        {
+                            var settings = _settings.Load(e.Server);
+                            foreach (KeyValuePair<string, Settings.Registration> reg in settings.Registrations)
+                            {
+                                Console.WriteLine("Removing " + reg.Key.ToString() + " battler name " + reg.Value.NetbattlerName);
+
+                                settings.RemoveRegistration(reg.Key.ToString());
+                                
+                            }
+                            await e.Channel.SendMessage("The event has been closed.");
+                        });
+                    grp.CreateCommand("title")
                     .Parameter("Event Title", ParameterType.Required)
                     .Do(async e =>
                     {
@@ -84,28 +105,32 @@ namespace ColonelBot.Modules.Event
                             var settings = _settings.Load(e.Server);
                             settings.CurrentEventTitle = e.Args[0];
                             await e.Channel.SendMessage("The event title has been updated.");
-                        }else
-                        {
-                            await e.Channel.SendMessage("You do not have permission to update the event title.");
-                        }
-                        
-                    });
-
-                group.CreateCommand("url")
-                    .Parameter("Event URL", ParameterType.Required)
-                    .Do(async e =>
-                    {
-                        if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
-                        {
-                            var settings = _settings.Load(e.Server);
-                            settings.CurrentEventURL = e.Args[0];
-                            await e.Channel.SendMessage("The event URL has been updated.");
                         }
                         else
                         {
-                            await e.Channel.SendMessage("You do not have permission to update the event URL.");
+                            await e.Channel.SendMessage("You do not have permission to update the event title.");
                         }
+
                     });
+
+                    grp.CreateCommand("url")
+                        .Parameter("Event URL", ParameterType.Required)
+                        .Do(async e =>
+                        {
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
+                        {
+                                var settings = _settings.Load(e.Server);
+                                settings.CurrentEventURL = e.Args[0];
+                                await e.Channel.SendMessage("The event URL has been updated.");
+                            }
+                            else
+                            {
+                                await e.Channel.SendMessage("You do not have permission to update the event URL.");
+                            }
+                        });
+                });
+                //EVENT ORGANIZER COMMANDS
+                
             });
 
         }           
