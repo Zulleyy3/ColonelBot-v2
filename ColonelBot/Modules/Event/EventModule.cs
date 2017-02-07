@@ -29,11 +29,52 @@ namespace ColonelBot.Modules.Event
             _client = manager.Client;
             _settings = _client.GetService<SettingsService>().AddModule<EventModule, Settings>(manager);
 
-            
+            manager.CreateCommands("round", group =>
+            {
+                group.CreateCommand("report")
+                    .Parameter("wins", ParameterType.Required)
+                    .Description("Report your current rounds' wins to ColonelBot.");
+                    //.Do(async e =>
+                
+            });
 
             manager.CreateCommands("event", group =>
             {
-                
+                group.CreateCommand("register")
+                    .Parameter("Netbattler Name", ParameterType.Required)
+                    .Description("Register for the currently active event, if any. Requires Netbattler Name")
+                    .Do(async e =>
+                    {
+                        var settings = _settings.Load(e.Server);
+                        if (settings.AddRegistration(e.Args[0], e.User.Id.ToString()))
+                        {
+                            Console.WriteLine("Added registration to event.");
+                            await _settings.Save(e.Server, settings);
+                            await e.Channel.SendMessage("You are registered for " + settings.CurrentEventTitle + " successfully.");
+                        }
+                        else
+                        {
+                            await e.Channel.SendMessage("You are already registered for the event.");
+                            Console.WriteLine("User tried to register for the event but was already registered.");
+                        }
+
+                    });
+                group.CreateCommand("drop")
+                    .Description("Drops you from the active event, if any.")
+                    .Do(async e =>
+                    {
+                        var settings = _settings.Load(e.Server);
+                        if (settings.RemoveRegistration(e.User.Id.ToString()))
+                        {
+                            await e.Channel.SendMessage("You have been removed from " + settings.CurrentEventTitle);
+                            await _settings.Save(e.Server, settings);
+                        }
+                        else
+                        {
+                            await e.Channel.SendMessage("You're not enrolled in the current event.");
+                        }
+                        await e.Channel.SendMessage("TEST");
+                    });
                 group.CreateCommand("title")
                     .Parameter("Event Title", ParameterType.Required)
                     .Do(async e =>

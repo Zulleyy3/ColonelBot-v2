@@ -52,7 +52,7 @@ namespace ColonelBot
             _client.AddService<Services.SettingsService>(); //Install the settings service to the bot.
             _client.AddService<Services.HttpService>(); //Installs the Http service to the bot.
             _client.UsingModules();
-
+            
             _client.AddModule<ProfileModule>("Profiles", ModuleFilter.None);
             _client.AddModule<FeedModule>("Feeds", ModuleFilter.None);
             _client.AddModule<EventModule>("Event", ModuleFilter.None);

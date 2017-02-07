@@ -12,19 +12,19 @@ namespace ColonelBot.Modules.Event
     {
         public class Registration
         {
-            public ulong ChannelId { get; set; }
+            public string UserID { get; set; }
             public string NetbattlerName { get; set; }
         }
 
         public ConcurrentDictionary<string, Registration> Registrations = new ConcurrentDictionary<string, Registration>();
 
-        public bool AddRegistration(string url, ulong channelId)
-            => Registrations.TryAdd(url, new Registration { ChannelId = channelId });
-
-        public bool RemoveRegistration(string url)
+        public bool AddRegistration(string BattlerName, string UID)
+            => Registrations.TryAdd(UID, new Registration { NetbattlerName = BattlerName }); //This may need to be flipped.
+        //Rewrite this all.
+        public bool RemoveRegistration(string UID)
         {
             Registration ignored;
-            return Registrations.TryRemove(url, out ignored);
+            return Registrations.TryRemove(UID, out ignored);
         }
 
         public string CurrentEventTitle = "None";
@@ -38,5 +38,6 @@ namespace ColonelBot.Modules.Event
         public string StreamChannelURL = "None";
         public Channel EventChatChannel;
         public Role EventParticipantRole;
+        public bool IsEventActive = true; //Set to true for testing/dev.
     }
 }
