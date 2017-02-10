@@ -16,7 +16,7 @@ namespace ColonelBot.Modules.AutoModeration
     {
         public string OneDriveBlacklistLocation;
         public string OneDriveLogFile;
-        public Channel ReportChannel;
+        public ulong ReportChannelID;
         public bool AutoDelete; //Switch to enable/disable automatic deletion
         public bool AutoReport; //Switch to enable/disable reporting to the Chat Channel
 

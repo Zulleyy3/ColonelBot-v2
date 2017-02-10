@@ -23,17 +23,29 @@ namespace ColonelBot.Modules.AutoModeration
         private ModuleManager _manager;
         private DiscordClient _client;
         private SettingsManager<Settings> _settings;
-        private static Settings mySettings;
-        private string[] BlacklistedPhrases;
+        
+        private static string[] BlacklistedPhrases;
+        private static string[] WhitelistedPhrases;
         public bool ModInitialized = false;
 
         private static bool CheckMessage(string MessageToCheck)
         {//Checks the message against the blacklist. Returns true if it should be logged/blocked, false if not.
             bool result = false;
-            if (mySettings.AutoReport == true)
-            { //If the AutoReporter is enabled, do the check and report accordingly.
-                string test = "test";
-
+            foreach (string entry in BlacklistedPhrases)
+            {
+                if (MessageToCheck.ToUpper().Contains(entry.ToUpper()) == true)
+                {
+                    //Check to see if it's on the whitelist.
+                    foreach (string phrase in WhitelistedPhrases)
+                    {
+                        if (MessageToCheck.ToUpper().Contains(phrase.ToUpper()) == true)
+                        {
+                            result = false;
+                        }else
+                            result = true;
+                    }
+                    
+                }
             }
 
             return result;
@@ -48,33 +60,74 @@ namespace ColonelBot.Modules.AutoModeration
 
             Console.WriteLine("Installed AutoModeration");
 
+            BlacklistedPhrases = System.IO.File.ReadAllLines(FileTools.BotDirectory + "\\Config\\BlacklistLocation.txt");
+            WhitelistedPhrases = System.IO.File.ReadAllLines(FileTools.BotDirectory + "\\Config\\WhitelistLocation.txt");
 
+            manager.CreateCommands("updatelists", group =>
+            {
+                group.CreateCommand()
+                    .Do(async e =>
+                    {
+                        if (e.User.HasRole(e.Server.GetRole(132109612118704128)))
+                        {
+                            BlacklistedPhrases = System.IO.File.ReadAllLines("E:\\OneDrive\\N1 GP Admin\\Phrase Blacklist.txt");
+                            WhitelistedPhrases = System.IO.File.ReadAllLines("E:\\OneDrive\\N1 GP Admin\\Phrase Whitelist.txt");
+                            await e.Channel.SendMessage("Updated the whitelist and blacklist.");
+                        }
+                    });  
+            });
 
             manager.CreateCommands("autodelete", group =>
             {
 
-                group.CreateCommand("toggle")
+                group.CreateCommand()
                     .Description("Toggles the bot's Auto-Delete function.")
                     .Do(async e =>
                     {
-                        var settings = _settings.Load(e.Server);
-                        settings.AutoDelete = !settings.AutoDelete;
-                        await _settings.Save(e.Server, settings);
-                        Console.WriteLine("Toggled autodelete");
-                        await e.Channel.SendMessage("Auto-Delete: " + settings.AutoDelete.ToString());
+                        if (e.User.HasRole(e.Server.GetRole(132109612118704128)))
+                        {
+                            var settings = _settings.Load(e.Server);
+                            settings.AutoDelete = !settings.AutoDelete;
+                            await _settings.Save(e.Server, settings);
+                            Console.WriteLine("Toggled autodelete");
+                            await e.Channel.SendMessage("Auto-Delete: " + settings.AutoDelete.ToString());
+                        }
                     });
             });
 
             manager.CreateCommands("autoreport", group =>
             {
-                group.CreateCommand("toggle")
+                group.CreateCommand()
                     .Description("Toggles the bot's auto-reporting capabilities.")
                     .Do(async e =>
                     {
-                        var settings = _settings.Load(e.Server);
-                        settings.AutoReport = !settings.AutoReport;
-                        await _settings.Save(e.Server, settings);
-                        await e.Channel.SendMessage("Auto-Delete: " + settings.AutoReport.ToString());
+                        if (e.User.HasRole(e.Server.GetRole(132109612118704128)))
+                        {
+                            var settings = _settings.Load(e.Server);
+                            settings.AutoReport = !settings.AutoReport;
+                            await _settings.Save(e.Server, settings);
+                            await e.Channel.SendMessage("Auto-report: " + settings.AutoReport.ToString());
+                            if (settings.AutoReport == true)
+                            {
+                                _client.MessageReceived += async (s, x) =>
+                                {
+                                    if (CheckMessage(x.Message.Text) == true)
+                                    {
+
+                                        if (x.User.Id != 249632069238390784)
+                                        {
+                                            await e.Server.GetChannel(settings.ReportChannelID).SendMessage(x.User.Name + " said ''" + x.Message.Text + "'' in " + x.Channel.Name + " on " + DateTime.Now.Month + " " + DateTime.Now.Day + " " + DateTime.Now.TimeOfDay);
+                                            if (settings.AutoDelete == true)
+                                            {
+                                                await x.Message.Delete();
+                                            }
+                                        }
+
+                                    }
+                                };
+                            }
+                        }
+                       
                     });
             });
 
@@ -82,21 +135,25 @@ namespace ColonelBot.Modules.AutoModeration
             manager.CreateCommands("setchannel", group =>
             {
 
-                group.CreateCommand("reporting")
+                group.CreateCommand()
                     .Description("Sets the reporting channel.")
                     .Do(async e =>
                     {
 
-                        if (ModInitialized == true)
+                         
+                        if (e.User.HasRole(e.Server.GetRole(132109612118704128)))
                         {
-                            //if (e.User.HasRole(e.Server.GetRole(132109612118704128)))
-                            //{
-                                mySettings.ReportChannel = e.Channel;
-                                await _settings.Save(e.Server, mySettings);
-                                await e.Channel.SendMessage("Set this channel to be the default reporting channel.");
-                            //}
+                            var settings = _settings.Load(e.Server);
                             
-                        }
+                            settings.ReportChannelID = e.Channel.Id;
+                            
+                            
+                            await _settings.Save(e.Server, settings);
+                            await e.Channel.SendMessage("Set this channel to be the default reporting channel.");
+                            Console.WriteLine("AutoMod: Reporting Channel set to " + e.Server.GetChannel(settings.ReportChannelID).Name);
+                    }
+                            
+                        
                     });
             });
 
@@ -105,6 +162,10 @@ namespace ColonelBot.Modules.AutoModeration
 
           
     }
-        
+
+        private void _client_MessageReceived(object sender, MessageEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
