@@ -16,7 +16,8 @@ using NAudio.CoreAudioApi;
 using ColonelBot.Modules.Profiles;
 using ColonelBot.Modules.Feeds;
 using ColonelBot.Modules.Event;
-
+using ColonelBot.Modules.AutoModeration;
+using ColonelBot.Modules.Information;
 namespace ColonelBot
 {
     class Program
@@ -56,6 +57,9 @@ namespace ColonelBot
             _client.AddModule<ProfileModule>("Profiles", ModuleFilter.None);
             _client.AddModule<FeedModule>("Feeds", ModuleFilter.None);
             _client.AddModule<EventModule>("Event", ModuleFilter.None);
+            _client.AddModule<AutoModModule>("AutoModeration", ModuleFilter.None);
+            //_client.AddModule<InfoModule>("Information", ModuleFilter.None);
+
             //Phase 2: Command Implementation
 
             _client.GetService<CommandService>().CreateGroup("lookup", cgb =>
@@ -109,26 +113,36 @@ namespace ColonelBot
                 .Description("Honor Barryl the Immortal.")
                 .Do(async e =>
                 {
-                    await e.Channel.SendFile(FileTools.BotDirectory + "/Images/barrelsan.png");
+                    await e.Channel.SendFile(GetRandomFile("Images/barrelsan"));
                 });
 
             _client.GetService<CommandService>().CreateCommand("hamachi")
                 .Description("Asks ColonelBot to Privately Message you the credentials to access the N1GP Hamachi Server.")
                 .Do(async e =>
                 {
-                    await e.User.SendMessage("<HAMACHI INFO PLACEHOLDER>"); //TODO: Extend FileTools to build this cleanly
+                    await e.User.SendMessage(FileTools.BuildHamachiMessage());
+                    await e.Channel.SendMessage("You have e-mail, " + e.User.Name + ".");
+                    Console.WriteLine(e.User.Name + " requested Hamachi inforamtion.");
                 });
 
             _client.GetService<CommandService>().CreateCommand("welcome")
-                .Description("Provides you all the information you'll need to get started with Netbattling online. Welcome to N1GP!")
+                .Description("Provides you everything you need to begin Netbattling with the N1 Grand Prix!")
                 .Do(async e =>
                 {
-                    await e.User.SendMessage("<WELCOME KIT PLACEHOLDER>"); //TODO: Extend FileTools to build this cleanly
+                    await e.User.SendMessage(FileTools.BuildWelcomeMessage());
+                    await e.Channel.SendMessage("You have e-mail, " + e.User.Name + ".");
+                    Console.WriteLine(e.User.Name + " has requested a welcome kit.");
+                });
+            _client.GetService<CommandService>().CreateCommand("onedrive")
+                .Description("Provides the Participant OneDrive link, containing all saves, patches and tournament format information.")
+                .Do(async e =>
+                {
+                    await e.Channel.SendMessage(FileTools.BuildOneDriveMessage());
                 });
 
-            
             //Phase 3: Connect
             _client.ExecuteAndWait(async () => { await _client.Connect(System.IO.File.ReadAllText(FileTools.BotDirectory + "/Config/botKey.txt"), TokenType.Bot); });
+            
             _client.SetGame("in your PET.");
         }
 

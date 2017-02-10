@@ -90,10 +90,14 @@
     <Compile Include="FileTools.cs" />
     <Compile Include="Modes\TwitchMode.cs" />
     <Compile Include="Modules\AudioModule.cs" />
+    <Compile Include="Modules\AutoModeration\AutoModModule.cs" />
+    <Compile Include="Modules\AutoModeration\Settings.cs" />
     <Compile Include="Modules\Event\EventModule.cs" />
     <Compile Include="Modules\Event\Settings.cs" />
     <Compile Include="Modules\Feeds\FeedModule.cs" />
     <Compile Include="Modules\Feeds\Settings.cs" />
+    <Compile Include="Modules\Information\InfoModule.cs" />
+    <Compile Include="Modules\Information\Settings.cs" />
     <Compile Include="Modules\LookupModule.cs" />
     <Compile Include="Modules\Profiles\ProfileModule.cs" />
     <Compile Include="Modules\Profiles\Settings.cs" />

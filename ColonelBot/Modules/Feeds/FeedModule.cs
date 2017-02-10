@@ -34,6 +34,7 @@ namespace ColonelBot.Modules.Feeds
 
         void IModule.Install(ModuleManager manager)
         {
+            Console.WriteLine("Installed Feeds Module.");
             _manager = manager;
             _client = manager.Client;
             _http = _client.GetService<HttpService>();
@@ -81,7 +82,7 @@ namespace ColonelBot.Modules.Feeds
                     if (!_isRunning)
                     {
                         Task.Run(Run);
-                        Console.WriteLine("Task Running");
+                        Console.WriteLine("Feeds Task Running. ColonelBot v2 is ready for operation.");
                         _isRunning = true;
                     }
                 };

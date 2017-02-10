@@ -27,6 +27,7 @@ namespace ColonelBot.Modules.Profiles
 
         void IModule.Install(ModuleManager manager)
         {
+            Console.WriteLine("Installed Profiles Module.");
             _manager = manager;
             _client = manager.Client;
             _settings = _client.GetService<SettingsService>().AddModule<ProfileModule, Settings>(manager);
@@ -49,71 +50,146 @@ namespace ColonelBot.Modules.Profiles
                         }
                         else
                         {//Viewing the profile(s) of the caller.
-                            await e.Channel.SendMessage(GetProfile(e.User.Id.ToString()));   
+                            
+                                await e.Channel.SendMessage(GetProfile(e.User.Id.ToString()));
+                          
+                            
                         }
-                        await e.Channel.SendMessage("Beepboop");
+                        
                     });
                 group.CreateCommand("3ds")
                     .Parameter("3DS Friend Code", ParameterType.Required)
                     .Description("Updates your profiles' 3DS Friend Code")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.N3DS, e.Args[2]);
-                        await e.Channel.SendMessage("Updated 3DS Friend Code.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.N3DS, e.Args[0]);
+                            await e.Channel.SendMessage("Updated 3DS Friend Code.");
+                        }                            
+                        else
+                        {
+                            CreateProfile(e.User.Id.ToString());
+                            UpdateField(e.User.Id.ToString(), Fields.N3DS, e.Args[0]);
+                            await e.Channel.SendMessage("Created your profile and updated 3DS Friend Code.");
+                        }
+                        
                     });
                 group.CreateCommand("psn")
                     .Parameter("PSN ID", ParameterType.Required)
                     .Description("Updates your profiles' PSN ID.")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.PSN, e.Args[2]);
-                        await e.Channel.SendMessage("Updated PSN ID.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.PSN, e.Args[0]);
+                            await e.Channel.SendMessage("Updated PSN ID.");
+                        }
+                        else
+                        {
+                            CreateProfile(e.User.Id.ToString());
+                            UpdateField(e.User.Id.ToString(), Fields.PSN, e.Args[0]);
+                            await e.Channel.SendMessage("Created your profile and updated PSN ID");
+                        }                       
+                       
                     });
                 group.CreateCommand("xbl")
+                    .Alias("xbox")
                     .Parameter("Xbox Live Gamertag", ParameterType.Required)
                     .Description("Updates your profiles' Xbox Live Gamertag.")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.XBL, e.Args[2]);
-                        await e.Channel.SendMessage("Updated Xbox Live Gamertag.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.XBL, e.Args[0]);
+                            await e.Channel.SendMessage("Updated Xbox Live Gamertag.");
+                        }
+                       else
+                        {
+                            CreateProfile(e.User.Id.ToString());
+                            UpdateField(e.User.Id.ToString(), Fields.XBL, e.Args[0]);
+                            await e.Channel.SendMessage("Created your profile and updated your Xbox Live Gamertag.");
+                        }
                     });
                 group.CreateCommand("nnid")
                     .Parameter("Nintendo Network ID", ParameterType.Required)
                     .Description("Updates your profiles' Nintendo Network ID.")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.NNID, e.Args[2]);
-                        await e.Channel.SendMessage("Updated Nintendo Network ID.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.NNID, e.Args[0]);
+                            await e.Channel.SendMessage("Updated Nintendo Network ID.");
+                        }
+                        else
+                        {
+                            CreateProfile(e.User.Id.ToString());
+                            UpdateField(e.User.Id.ToString(), Fields.NNID, e.Args[0]);
+                            await e.Channel.SendMessage("Created your profile and updated your Nintendo Network ID.");
+                        }
+                        
                     });
                 group.CreateCommand("cx")
                     .Parameter("Chrono X Mate Code", ParameterType.Required)
                     .Description("Updates your profiles' Chrono X Mate Code")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.CX, e.Args[2]);
-                        await e.Channel.SendMessage("Updated Chrono X Mate Code.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.CX, e.Args[0]);
+                            await e.Channel.SendMessage("Updated Chrono X Mate Code.");
+                        }
+                        else
+                        {
+                            CreateProfile(e.User.Id.ToString());
+                            UpdateField(e.User.Id.ToString(), Fields.CX, e.Args[0]);
+                            await e.Channel.SendMessage("Created your profile and updated your Chrono X Mate Code.");
+                        }
+                        
                     });
                 group.CreateCommand("bnct")
                     .Parameter("Battle Network Cyber Tournament Code", ParameterType.Required)
                     .Description("Updates your profiles' BNCT Friend Code. http://bnct.us")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.BNCT, e.Args[2]);
-                        await e.Channel.SendMessage("Updated BNCT Friend Code.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.BNCT, e.Args[0]);
+                            await e.Channel.SendMessage("Updated BNCT Friend Code.");
+                        }
+                        else
+                        {
+                            CreateProfile(e.User.Id.ToString());
+                            UpdateField(e.User.Id.ToString(), Fields.BNCT, e.Args[0]);
+                            await e.Channel.SendMessage("Created your profile and updated your BNCT Friend Code.");
+                        }
+                       
                     });
                 group.CreateCommand("lock")
                     .Description("Locks your profile so it's not publicly viewable.")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.Locked, "True");
-                        await e.Channel.SendMessage("Your profile is now locked.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.Locked, "True");
+                            await e.Channel.SendMessage("Your profile is now locked.");
+                        }
+                        else
+                            await e.Channel.SendMessage("A profile doesn't exist for you to lock.");
+                        
                     });
                 group.CreateCommand("unlock")
                     .Description("Unlocks your profile so it can be publicly viewed.")
                     .Do(async e =>
                     {
-                        UpdateField(e.User.Id.ToString(), Fields.Locked, "False");
-                        await e.Channel.SendMessage("Your profile is now unlocked.");
+                        if (ProfileExists(e.User.Id.ToString()) == true)
+                        {
+                            UpdateField(e.User.Id.ToString(), Fields.Locked, "False");
+                            await e.Channel.SendMessage("Your profile is now unlocked.");
+                        }
+                        else
+                            await e.Channel.SendMessage("A profile doesn't exist for you to unlock.");
+                        
                     });
             });
         }
@@ -126,10 +202,7 @@ namespace ColonelBot.Modules.Profiles
         public void UpdateField(string userid, Fields target, string value)
         {
             //Phase 1: Check to see if the profile exists.
-            if (System.IO.File.Exists(MainDir + userid + ".xml") == false)
-            { //The profile does not exist. Generate a new one.
-                CreateProfile(userid);
-            }
+            
 
             //Phase 2: Update the node contingent upon the target Field. 
 
@@ -165,12 +238,21 @@ namespace ColonelBot.Modules.Profiles
                         break;
                 }
             }
+            else
+                Console.WriteLine("Attempt to update profile blocked.");
             
             
         }
 
+        public bool ProfileExists(string UserID)
+        {
+            
+            return System.IO.File.Exists(MainDir + UserID + ".xml");
+        }
+
         private void ChangeField(string CodeToUpdate, string UserID, int IndexToUpdate)
         {
+            
             XmlDocument m_xmld = new XmlDocument();
             m_xmld.Load(MainDir + UserID + ".xml");
             XmlNode XmlMasterNode = m_xmld.SelectSingleNode("/Profile");
@@ -180,42 +262,51 @@ namespace ColonelBot.Modules.Profiles
 
         public static string GetProfile(string UserID)
         {//This should only be called after the file is verified to exist.
-            string result = "";
-            XmlDocument m_xmld = new XmlDocument();
-            m_xmld.Load(MainDir + UserID + ".xml");
-            XmlNode masterNode = m_xmld.SelectSingleNode("/Profile");
+            if (System.IO.File.Exists(MainDir + UserID + ".xml") == true)
+            {
+                string result = "";
+                XmlDocument m_xmld = new XmlDocument();
+                m_xmld.Load(MainDir + UserID + ".xml");
+                XmlNode masterNode = m_xmld.SelectSingleNode("/Profile");
 
-            bool Locked = Convert.ToBoolean(masterNode.ChildNodes.Item(8).InnerText);
-            string N3DS = masterNode.ChildNodes.Item(2).InnerText;
-            string XBL = masterNode.ChildNodes.Item(3).InnerText;
-            string PSN = masterNode.ChildNodes.Item(4).InnerText;
-            string NNID = masterNode.ChildNodes.Item(5).InnerText;
-            string CX = masterNode.ChildNodes.Item(6).InnerText;
-            string BNCT = masterNode.ChildNodes.Item(7).InnerText;
+                bool Locked = Convert.ToBoolean(masterNode.ChildNodes.Item(8).InnerText);
+                string N3DS = masterNode.ChildNodes.Item(2).InnerText;
+                string XBL = masterNode.ChildNodes.Item(3).InnerText;
+                string PSN = masterNode.ChildNodes.Item(4).InnerText;
+                string NNID = masterNode.ChildNodes.Item(5).InnerText;
+                string CX = masterNode.ChildNodes.Item(6).InnerText;
+                string BNCT = masterNode.ChildNodes.Item(7).InnerText;
 
-            if (Locked)
-                result = "Profile Locked.";
+                if (Locked)
+                    result = "Profile Locked.";
+                else
+                {
+                    result = "User Profile for <@" + UserID + ">" +
+                        "\n==================================\n";
+                    if (N3DS != "")
+                        result += "**Nintendo 3DS Friend Code:** " + N3DS + "\n";
+                    if (XBL != "")
+                        result += "**Xbox Live Gamertag:** " + XBL + "\n";
+                    if (PSN != "")
+                        result += "**PSN ID:** " + PSN + "\n";
+                    if (NNID != "")
+                        result += "**Nintendo Network ID:** " + NNID + "\n";
+                    if (CX != "")
+                        result += "**Chrono X Mate Code:** " + CX + "\n";
+                    if (BNCT != "")
+                        result += "**BN Cyber Tournament Friend Code:** " + BNCT;
+                }
+                return result;
+            }
             else
             {
-                result = "User Profile for <@" + UserID + ">" +
-                    "\n==================================\n";
-                if (N3DS != "")
-                    result += "**Nintendo 3DS Friend Code:** " + N3DS + "\n";
-                if (XBL != "")
-                    result += "**Xbox Live Gamertag:** " + XBL + "\n";
-                if (PSN != "")
-                    result += "**PSN ID:** " + PSN + "\n";
-                if (NNID != "")
-                    result += "**Nintendo Network ID:** " + NNID + "\n";
-                if (CX != "")
-                    result += "**Chrono X Mate Code:** " + CX + "\n";
-                if (BNCT != "")
-                    result += "**BN Cyber Tournament Friend Code:** " + BNCT;
+                CreateProfile(UserID);
+                return "Profile didn't exist and has been created.";
             }
-            return result;
+            
         }
 
-        private void CreateProfile(string UserID)
+        private static void CreateProfile(string UserID)
         {
             XmlTextWriter writer = new XmlTextWriter(MainDir + UserID + ".xml", System.Text.Encoding.UTF8);
             writer.WriteStartDocument(true);
@@ -234,9 +325,10 @@ namespace ColonelBot.Modules.Profiles
             writer.WriteEndElement();
             writer.WriteEndDocument();
             writer.Close();
+            Console.WriteLine("Created a new profile for UID " + UserID);
         }
 
-        private void CreateNode(string NodeName, string NodeValue, XmlTextWriter tWriter)
+        private static void CreateNode(string NodeName, string NodeValue, XmlTextWriter tWriter)
         {
             tWriter.WriteStartElement(NodeName);
             tWriter.WriteString(NodeValue);

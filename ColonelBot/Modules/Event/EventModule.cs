@@ -25,6 +25,7 @@ namespace ColonelBot.Modules.Event
         
         void IModule.Install(ModuleManager manager)
         {
+            Console.WriteLine("Installed Event Tools Module.");
             _manager = manager;
             _client = manager.Client;
             _settings = _client.GetService<SettingsService>().AddModule<EventModule, Settings>(manager);
