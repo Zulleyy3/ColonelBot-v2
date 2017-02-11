@@ -140,6 +140,19 @@ namespace ColonelBot
                     await e.Channel.SendMessage(FileTools.BuildOneDriveMessage());
                 });
 
+            _client.GetService<CommandService>().CreateCommand("delete")
+                .Parameter("Messages to Delet", ParameterType.Required)
+                .Description("Deletes the commands and responses up to the amount of messages specified.")
+                .Do(async e =>
+                {
+                    int toDelete = Convert.ToInt16(e.Args[0] + 1);
+                    int deleted;
+                    //await deleted = LegacyTools.CleanMessages(e.Channel, toDelete, e.Message);
+                    await e.Channel.SendMessage("Deleted.");
+                    
+                
+                });
+
             //Phase 3: Connect
             _client.ExecuteAndWait(async () => { await _client.Connect(System.IO.File.ReadAllText(FileTools.BotDirectory + "/Config/botKey.txt"), TokenType.Bot); });
             

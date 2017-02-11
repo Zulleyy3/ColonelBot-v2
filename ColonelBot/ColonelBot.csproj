@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileTools.cs" />
+    <Compile Include="LegacyTools.cs" />
     <Compile Include="Modes\TwitchMode.cs" />
     <Compile Include="Modules\AudioModule.cs" />
     <Compile Include="Modules\AutoModeration\AutoModModule.cs" />
