@@ -62,61 +62,38 @@ namespace ColonelBot
 
             //Phase 2: Command Implementation
 
-            _client.GetService<CommandService>().CreateGroup("lookup", cgb =>
-            {//TODO: Offload this to the Lookup Module
-                cgb.CreateCommand("chip")
-                    .Description("Looks up a chip by name.")
-                    .Parameter("ChipName", ParameterType.Required)
-                    .Do(async e =>
-                    {
-                        await e.Channel.SendMessage("Looking up chip."); //replace later.
-                        //Lookup Code Here. Use e.GetArg("ChipName") to obtain the parameter.
-                    });
-                cgb.CreateCommand("pa")
-                    .Description("Looks up a Program Advance by name.")
-                    .Parameter("PAName", ParameterType.Required)
-                    .Do(async e =>
-                    {
-                        await e.Channel.SendMessage("Looking up Program Advance");
-                    });
-                cgb.CreateCommand("code")
-                    .Description("Looks up all chips for the specified code.")
-                    .Parameter("LookupCode", ParameterType.Required)
-                    .Do(async e =>
-                    {
-                        await e.Channel.SendMessage("Looking up chip by code.");
-                    });
-            });
+            CommandService cmd = _client.GetService<CommandService>();
 
-            _client.GetService<CommandService>().CreateCommand("sad")
+           
+            cmd.CreateCommand("sad")
                 .Description("Displays a sad meme.")
                 .Do(async e =>
                 {
                     await e.Channel.SendFile(GetRandomFile("Images/sad"));
                 });
 
-            _client.GetService<CommandService>().CreateCommand("smug")
+            cmd.CreateCommand("smug")
                 .Description("Displays a smug meme.")
                 .Do(async e =>
                 {
                     await e.Channel.SendFile(GetRandomFile("Images/smug"));
                 });
 
-            _client.GetService<CommandService>().CreateCommand("savenettokun")
+            cmd.CreateCommand("savenettokun")
                 .Description("SAVE HIM.")
                 .Do(async e =>
                 {
                     await e.Channel.SendFile(GetRandomFile("Images/savenettokun"));
                 });
 
-            _client.GetService<CommandService>().CreateCommand("barrelsan")
+            cmd.CreateCommand("barrelsan")
                 .Description("Honor Barryl the Immortal.")
                 .Do(async e =>
                 {
                     await e.Channel.SendFile(GetRandomFile("Images/barrelsan"));
                 });
 
-            _client.GetService<CommandService>().CreateCommand("hamachi")
+            cmd.CreateCommand("hamachi")
                 .Description("Asks ColonelBot to Privately Message you the credentials to access the N1GP Hamachi Server.")
                 .Do(async e =>
                 {
@@ -125,7 +102,7 @@ namespace ColonelBot
                     Console.WriteLine(e.User.Name + " requested Hamachi inforamtion.");
                 });
 
-            _client.GetService<CommandService>().CreateCommand("welcome")
+            cmd.CreateCommand("welcome")
                 .Description("Provides you everything you need to begin Netbattling with the N1 Grand Prix!")
                 .Do(async e =>
                 {
@@ -133,14 +110,14 @@ namespace ColonelBot
                     await e.Channel.SendMessage("You have e-mail, " + e.User.Name + ".");
                     Console.WriteLine(e.User.Name + " has requested a welcome kit.");
                 });
-            _client.GetService<CommandService>().CreateCommand("onedrive")
+            cmd.CreateCommand("onedrive")
                 .Description("Provides the Participant OneDrive link, containing all saves, patches and tournament format information.")
                 .Do(async e =>
                 {
                     await e.Channel.SendMessage(FileTools.BuildOneDriveMessage());
                 });
 
-            _client.GetService<CommandService>().CreateCommand("delete")
+            cmd.CreateCommand("delete")
                 .Parameter("Messages to Delet", ParameterType.Required)
                 .Description("Deletes the commands and responses up to the amount of messages specified.")
                 .Do(async e =>
@@ -164,7 +141,7 @@ namespace ColonelBot
 
 
             private static string GetRandomFile(string folder)
-        {
+            {
             //Ported from v1.4. Credit to Prof. 9.
             // TODO: Do this only once.
             string baseDir = new FileInfo(System.Reflection.Assembly.GetEntryAssembly().Location).DirectoryName;

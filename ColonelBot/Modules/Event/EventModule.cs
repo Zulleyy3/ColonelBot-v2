@@ -39,6 +39,7 @@ namespace ColonelBot.Modules.Event
                 
             });
 
+
             manager.CreateCommands("event", group =>
             {
                 group.CreateCommand("register")
@@ -87,16 +88,45 @@ namespace ColonelBot.Modules.Event
                         .Description("Ends the event, dropping all participants.")
                         .Do(async e =>
                         {
-                            var settings = _settings.Load(e.Server);
-                            foreach (KeyValuePair<string, Settings.Registration> reg in settings.Registrations)
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
                             {
-                                Console.WriteLine("Removing " + reg.Key.ToString() + " battler name " + reg.Value.NetbattlerName);
+                                var settings = _settings.Load(e.Server);
+                                foreach (KeyValuePair<string, Settings.Registration> reg in settings.Registrations)
+                                {
+                                    Console.WriteLine("Removing " + reg.Key.ToString() + " battler name " + reg.Value.NetbattlerName);
 
-                                settings.RemoveRegistration(reg.Key.ToString());
-                                
+                                    settings.RemoveRegistration(reg.Key.ToString());
+
+                                }
+                                await e.Channel.SendMessage("The event has been closed.");
                             }
-                            await e.Channel.SendMessage("The event has been closed.");
                         });
+
+                    grp.CreateCommand("report")
+                        .Description("Provides the organizer a list of currently enrolled battlers.")
+                        .Do(async e =>
+                        {
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
+                            {
+                                var settings = _settings.Load(e.Server);
+                                string result = "Event Participant List\n\n";
+                                foreach (KeyValuePair<string, Settings.Registration> reg in settings.Registrations)
+                                {
+                                    result += e.Server.GetUser(Convert.ToUInt64(reg.Key)).Name + " (ID: " + reg.Key.ToString() + " ) - Battler Name: " + reg.Value.NetbattlerName + "\n";
+                                }
+
+                                result += "\n\n====Challonge Export====\n\n";
+
+                                foreach (KeyValuePair<string, Settings.Registration> reg  in settings.Registrations)
+                                {
+                                    result += reg.Value.NetbattlerName + "\n";
+                                }
+                                await e.User.SendMessage(result);
+                                await e.Channel.SendMessage("You have e-mail.");
+                            }
+                           
+                        });
+
                     grp.CreateCommand("title")
                     .Parameter("Event Title", ParameterType.Required)
                     .Do(async e =>

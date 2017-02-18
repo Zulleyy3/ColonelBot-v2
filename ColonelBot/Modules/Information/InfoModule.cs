@@ -32,7 +32,6 @@ namespace ColonelBot.Modules.Information
             manager.CreateCommands("welcome", group =>
             {
                 group.CreateCommand()
-                    .Parameter("Home?", ParameterType.Optional)
                     .Description("Gives you all the information you will need to Netbattle online.")
                     .Do(async e =>
                     {
