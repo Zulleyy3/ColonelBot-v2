@@ -12,7 +12,7 @@ using Discord.Commands.Permissions.Userlist;
 using ColonelBot;
 using ColonelBot.Services;
 using System.Net;
-
+using System.Text.RegularExpressions;
 
 namespace ColonelBot.Modules.Event
 {
@@ -50,7 +50,12 @@ namespace ColonelBot.Modules.Event
                         var settings = _settings.Load(e.Server);
                         if (settings.AcceptingRegistrations == true)
                         {
-                            if (settings.AddRegistration(e.Args[0], e.User.Id.ToString()))
+                            string RegistrationName = Regex.Replace(e.Args[0], @"\s+", ""); //Anti-prof/zulley code //\r\n?|\n
+
+                            if (RegistrationName.Length > 20) //Anti-mid code
+                                RegistrationName = RegistrationName.Remove(20, RegistrationName.Length - 20);
+
+                            if (settings.AddRegistration(RegistrationName, e.User.Id.ToString()))
                             {
                                 Console.WriteLine("Added registration to event.");
                                 await _settings.Save(e.Server, settings);
@@ -138,7 +143,8 @@ namespace ColonelBot.Modules.Event
                                 foreach (KeyValuePair<string, Settings.Registration> reg in settings.Registrations)
                                 {
                                     Console.WriteLine("Removing " + reg.Key.ToString() + " battler name " + reg.Value.NetbattlerName);
-
+                                    
+                                    await e.Server.GetUser(Convert.ToUInt64(reg.Key)).RemoveRoles(e.Server.GetRole(203848231803813889));
                                     settings.RemoveRegistration(reg.Key.ToString());
 
                                 }
