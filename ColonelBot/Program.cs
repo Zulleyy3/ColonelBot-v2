@@ -130,6 +130,15 @@ namespace ColonelBot
                 
                 });
 
+            cmd.CreateCommand("guides")
+                .Description("Provides the user with guides")
+                .Do(async e =>
+                {
+                    await e.User.SendMessage(FileTools.BuildGuideMessage());
+                    await e.Channel.SendMessage("You have e-mail, " + e.User.Name + ".");
+                    Console.WriteLine(e.User.Name + " has requested guides.");
+                });
+
             //Phase 3: Connect
             _client.ExecuteAndWait(async () => { await _client.Connect(System.IO.File.ReadAllText(FileTools.BotDirectory + "/Config/botKey.txt"), TokenType.Bot); });
             

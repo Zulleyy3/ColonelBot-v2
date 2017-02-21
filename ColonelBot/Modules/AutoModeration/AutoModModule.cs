@@ -60,8 +60,8 @@ namespace ColonelBot.Modules.AutoModeration
 
             Console.WriteLine("Installed AutoModeration");
 
-            BlacklistedPhrases = System.IO.File.ReadAllLines(FileTools.BotDirectory + "\\Config\\BlacklistLocation.txt");
-            WhitelistedPhrases = System.IO.File.ReadAllLines(FileTools.BotDirectory + "\\Config\\WhitelistLocation.txt");
+            BlacklistedPhrases = System.IO.File.ReadAllLines(System.IO.File.ReadAllText(FileTools.BotDirectory + "\\Config\\BlacklistLocation.txt"));
+            WhitelistedPhrases = System.IO.File.ReadAllLines(System.IO.File.ReadAllText(FileTools.BotDirectory + "\\Config\\WhitelistLocation.txt"));
 
             manager.CreateCommands("updatelists", group =>
             {
@@ -70,8 +70,8 @@ namespace ColonelBot.Modules.AutoModeration
                     {
                         if (e.User.HasRole(e.Server.GetRole(132109612118704128)))
                         {
-                            BlacklistedPhrases = System.IO.File.ReadAllLines("E:\\OneDrive\\N1 GP Admin\\Phrase Blacklist.txt");
-                            WhitelistedPhrases = System.IO.File.ReadAllLines("E:\\OneDrive\\N1 GP Admin\\Phrase Whitelist.txt");
+                            BlacklistedPhrases = System.IO.File.ReadAllLines(System.IO.File.ReadAllText(FileTools.BotDirectory + "\\Config\\BlacklistLocation.txt"));
+                            WhitelistedPhrases = System.IO.File.ReadAllLines(System.IO.File.ReadAllText(FileTools.BotDirectory + "\\Config\\WhitelistLocation.txt"));
                             await e.Channel.SendMessage("Updated the whitelist and blacklist.");
                         }
                     });  
@@ -114,7 +114,7 @@ namespace ColonelBot.Modules.AutoModeration
                                     if (CheckMessage(x.Message.Text) == true)
                                     {
 
-                                        if (x.User.Id != 249632069238390784)
+                                        if (x.User.Id != 219281739967627267)
                                         {
                                             await e.Server.GetChannel(settings.ReportChannelID).SendMessage(x.User.Name + " said ''" + x.Message.Text + "'' in " + x.Channel.Name + " on " + DateTime.Now.Month + " " + DateTime.Now.Day + " " + DateTime.Now.TimeOfDay);
                                             if (settings.AutoDelete == true)

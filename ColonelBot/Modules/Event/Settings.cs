@@ -32,9 +32,12 @@ namespace ColonelBot.Modules.Event
         public string EventDescription = "None";
         public string RegistrationURL = "None";
         public string RegistrantXMLFile = "None";
+        public bool AcceptingRegistrations = true;
         public DateTime EventStartDateTime;
         public string BracketURL = "None";
         public bool BracketHidden = false;
+        public bool BracketLocked = false;
+        
         public string StreamChannelURL = "None";
         public Channel EventChatChannel;
         public Role EventParticipantRole;

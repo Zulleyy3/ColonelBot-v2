@@ -48,19 +48,26 @@ namespace ColonelBot.Modules.Event
                     .Do(async e =>
                     {
                         var settings = _settings.Load(e.Server);
-                        if (settings.AddRegistration(e.Args[0], e.User.Id.ToString()))
+                        if (settings.AcceptingRegistrations == true)
                         {
-                            Console.WriteLine("Added registration to event.");
-                            await _settings.Save(e.Server, settings);
-                            await e.User.AddRoles(e.Server.GetRole(203848231803813889));
+                            if (settings.AddRegistration(e.Args[0], e.User.Id.ToString()))
+                            {
+                                Console.WriteLine("Added registration to event.");
+                                await _settings.Save(e.Server, settings);
+                                await e.Channel.SendMessage("You are registered for " + settings.CurrentEventTitle + " successfully.");
+                                await e.User.AddRoles(e.Server.GetRole(203848231803813889));
 
-                            await e.Channel.SendMessage("You are registered for " + settings.CurrentEventTitle + " successfully.");
+                                
+                            }
+                            else
+                            {
+                                await e.Channel.SendMessage("You are already registered for the event.");
+                                Console.WriteLine("User tried to register for the event but was already registered.");
+                            }
                         }
                         else
-                        {
-                            await e.Channel.SendMessage("You are already registered for the event.");
-                            Console.WriteLine("User tried to register for the event but was already registered.");
-                        }
+                            await e.Channel.SendMessage("The event is not accepting registrations at this time.");
+                        
 
                     });
                 group.CreateCommand("drop")
@@ -80,6 +87,43 @@ namespace ColonelBot.Modules.Event
                         }
                         
                     });
+                group.CreateCommand("info")
+                    .Description("Provides information about the currently active event.")
+                    .Do(async e =>
+                    {
+                        var settings = _settings.Load(e.Server);
+                        string RegStatus = string.Empty;
+                        if (settings.AcceptingRegistrations == true)
+                            RegStatus = "Open";
+                        else
+                            RegStatus = "Closed";
+
+                        if (settings.BracketHidden == true)
+                        {//Is the bracket hidden?
+                            if (settings.BracketLocked == true)
+                            {//Is the caller a participant in the event?
+                                bool IsUserAParticipant = false;
+                                foreach (KeyValuePair<string, Settings.Registration> reg in settings.Registrations)
+                                { //reg.Key.ToString() = User ID
+                                    if (e.User.Id.ToString() == reg.Key.ToString())
+                                    {
+                                        IsUserAParticipant = true;
+                                    }
+                                    
+                                }
+                                if (IsUserAParticipant == true) //Self-explanatory
+                                    await e.Channel.SendMessage("Current Active Event: **" + settings.CurrentEventTitle + "**\nRegistration: **" + RegStatus + "**\nEvent Information: <" + settings.CurrentEventURL + ">\nEvent Bracket: <" + settings.BracketURL + ">");
+                                else //They're not.
+                                    await e.Channel.SendMessage("Current Active Event: **" + settings.CurrentEventTitle + "**\nRegistration: **" + RegStatus + "**\nEvent Information: <" + settings.CurrentEventURL + ">");
+                            }
+                            else // The caller is not a participant, give them the output with the bracket hidden.
+                                await e.Channel.SendMessage("Current Active Event: **" + settings.CurrentEventTitle + "**\nRegistration: **" + RegStatus + "**\nEvent Information: <" + settings.CurrentEventURL + ">");
+                        }else //The bracket is not hidden
+                            await e.Channel.SendMessage("Current Active Event: **" + settings.CurrentEventTitle + "**\nRegistration: **" + RegStatus + "**\nEvent Information: <" + settings.CurrentEventURL + ">\nEvent Bracket: <" + settings.BracketURL + ">");
+
+
+
+                    });
 
                 group.CreateGroup("admin", grp =>
                 {
@@ -98,7 +142,38 @@ namespace ColonelBot.Modules.Event
                                     settings.RemoveRegistration(reg.Key.ToString());
 
                                 }
+                                settings.CurrentEventTitle = "None";
+                                settings.AcceptingRegistrations = false;
+                                settings.CurrentEventURL = "None";
+                                settings.BracketURL = "None";
+                                settings.BracketHidden = true;
+                                settings.StreamChannelURL = "None";
+                                settings.BracketLocked = false;
                                 await e.Channel.SendMessage("The event has been closed.");
+                                await _settings.Save(e.Server, settings);
+                            }
+                        });
+
+                    grp.CreateCommand("registration")
+                        .Parameter("Open/Close", ParameterType.Required)
+                        .Do(async e =>
+                        {
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
+                            {
+                                var settings = _settings.Load(e.Server);
+                                if (e.Args[0] == "open")
+                                    settings.AcceptingRegistrations = true;
+                                else if (e.Args[0] == "close")
+                                    settings.AcceptingRegistrations = false;
+                                await _settings.Save(e.Server, settings);
+
+                                string RegStatus = string.Empty;
+                                if (settings.AcceptingRegistrations == true)
+                                    RegStatus = "Open";
+                                else
+                                    RegStatus = "Closed";
+
+                                await e.Channel.SendMessage("Registrations are now **" + RegStatus + "**.");
                             }
                         });
 
@@ -123,6 +198,7 @@ namespace ColonelBot.Modules.Event
                                 }
                                 await e.User.SendMessage(result);
                                 await e.Channel.SendMessage("You have e-mail.");
+                                
                             }
                            
                         });
@@ -136,13 +212,69 @@ namespace ColonelBot.Modules.Event
                             var settings = _settings.Load(e.Server);
                             settings.CurrentEventTitle = e.Args[0];
                             await e.Channel.SendMessage("The event title has been updated.");
+                            await _settings.Save(e.Server, settings);
                         }
                         else
                         {
                             await e.Channel.SendMessage("You do not have permission to update the event title.");
                         }
+                        
 
                     });
+
+                    grp.CreateCommand("bracket")
+                        .Parameter("Bracket URL", ParameterType.Required)
+                        .Description("Updates the Bracket URL.")
+                        .Do(async e =>
+                        {
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
+                            {
+                                var settings = _settings.Load(e.Server);
+                                settings.BracketURL = e.Args[0];
+                                await _settings.Save(e.Server, settings);
+                                await e.Channel.SendMessage("The Bracket URL has been updated.");
+                            }
+                        });
+
+                    grp.CreateCommand("hidebracket")
+                        .Description("Hides the bracket from !event info")
+                        .Do(async e =>
+                        {
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
+                            {
+                                var settings = _settings.Load(e.Server);
+                                settings.BracketHidden = true;
+                                await _settings.Save(e.Server, settings);
+                                await e.Channel.SendMessage("The bracket has been hidden from !event info");
+                            }
+                        });
+
+                    grp.CreateCommand("showbracket")
+                        .Description("Hides the bracket from !event info")
+                        .Do(async e =>
+                        {
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
+                            {
+                                var settings = _settings.Load(e.Server);
+                                settings.BracketHidden = false;
+                                await _settings.Save(e.Server, settings);
+                                await e.Channel.SendMessage("The bracket has been hidden from !event info");
+                            }
+                        });
+
+                    grp.CreateCommand("lockbracket")
+                        .Description("Sets the bracket to be PMed to the caller if the brackets are hidden but they are an event participant.")
+                        .Do(async e =>
+                        {
+                            if (e.User.HasRole(e.Server.GetRole(276401950185095168))) //This is the Event Organizer's ULONG ID.
+                            {
+                                var settings = _settings.Load(e.Server);
+                                settings.BracketLocked = !settings.BracketLocked;
+                                await _settings.Save(e.Server, settings);
+                                await e.Channel.SendMessage("Brackets will be provided to participants only if they are participating in the event? " + settings.BracketLocked.ToString() + ".");
+                            }
+                        });
+
 
                     grp.CreateCommand("url")
                         .Parameter("Event URL", ParameterType.Required)
@@ -153,6 +285,7 @@ namespace ColonelBot.Modules.Event
                                 var settings = _settings.Load(e.Server);
                                 settings.CurrentEventURL = e.Args[0];
                                 await e.Channel.SendMessage("The event URL has been updated.");
+                                await _settings.Save(e.Server, settings);
                             }
                             else
                             {

@@ -27,6 +27,20 @@ namespace ColonelBot
 
         }
 
+        public static string BuildGuideMessage()
+        {
+            string result = "ColonelBot v2 N1 Grand Prix Guides\n=====================";
+            result +=
+@"
+- Netbattle 101 [Guide for getting started with Netbattling]:   <http://bit.ly/1Rr14oN>
+- Netbattle 101 EX [Advanced guide containing deep detail]:     <http://bit.ly/1RszYzG>
+- Netbattle 101 Video Guides:                                   <https://www.youtube.com/playlist?list=PLZURQZLRE85FfM3W0dlsCtqn2clgGG-vm>
+- ModCard Guides:                                               <http://bombch.us/CHCd>
+";
+            return result;
+
+        }
+
         public static string BuildHamachiMessage()
         {
             string result = "**N1GP Hamachi Information**\n\n";
