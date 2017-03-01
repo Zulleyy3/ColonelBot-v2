@@ -10,9 +10,10 @@ using Discord.Modules;
 using Discord.Net;
 using System.Net;
 using System.Net.Http;
-using System.Xml.Linq;
+using System.Xml;
 using ColonelBot;
 using ColonelBot.Services;
+using System.ServiceModel.Syndication;
 
 namespace ColonelBot.Modules.Feeds
 {
@@ -50,13 +51,20 @@ namespace ColonelBot.Modules.Feeds
                         var settings = _settings.Load(e.Server);
                         Channel channel;
                         if (e.Args[1] != "")
+                        {
                             channel = _client.GetChannel(210751707431305217);
+                            Console.WriteLine("connected to 210751707431305217");
+                        }
                         else
                             channel = e.Channel;
-                        if (channel == null) return;
-
+                        if (channel == null)
+                        {
+                            Console.WriteLine("invalid");
+                            return;
+                        }
                         if (settings.AddFeed(e.Args[0], channel.Id))
                         {
+                            Console.WriteLine("you actually go here?");
                             await _settings.Save(e.Server, settings);
                             await e.Channel.SendMessage($"Linked feed {e.Args[0]} to {channel.Name}");
                         }
@@ -100,77 +108,52 @@ namespace ColonelBot.Modules.Feeds
                     {
                         foreach (var feed in settings.Value.Feeds)
                         {
-                            try
-                            {
-                                var channel = _client.GetChannel(feed.Value.ChannelId);
+                            try {
                                 
-                                    var content = await _http.Send(HttpMethod.Get, feed.Key);
-                                    var doc = XDocument.Load(await content.ReadAsStreamAsync());
-                                    var rssNode = doc.Element("rss");
-                                    var atomNode = doc.Element("{http://www.w3.org/2005/Atom}feed");
-
-                                    IEnumerable<Article> articles;
-                                    if (rssNode != null)
+                                Discord.Channel channel = _client.GetChannel(feed.Value.ChannelId);
+                                DateTimeOffset newestArticleTime = feed.Value.LastUpdate;
+                                XmlReader r = XmlNodeReader.Create(feed.Key);
+                                SyndicationFeed posts= SyndicationFeed.Load(r);
+                                r.Close();
+                                foreach(SyndicationItem item in posts.Items)
+                                {
+                                    if (item.LastUpdatedTime.CompareTo(feed.Value.LastUpdate) > 0)
                                     {
-                                        articles = rssNode
-                                            .Element("channel")
-                                            .Elements("item")
-                                            .Select(x => new Article
-                                            {
-                                                Title = x.Element("title")?.Value,
-                                                Link = x.Element("link")?.Value,
-                                                PublishedAt = DateTimeOffset.Parse(x.Element("pubDate").Value)
-                                            });
-                                    }
-                                    else if (atomNode != null)
-                                    {
-                                        articles = atomNode
-                                            .Elements("{http://www.w3.org/2005/Atom}entry")
-                                            .Select(x => new Article
-                                            {
-                                                Title = x.Element("{http://www.w3.org/2005/Atom}title")?.Value,
-                                                Link = x.Element("{http://www.w3.org/2005/Atom}link")?.Attribute("href")?.Value,
-                                                PublishedAt = DateTimeOffset.Parse(x.Element("{http://www.w3.org/2005/Atom}published").Value)
-                                            });
+                                        foreach(SyndicationLink link in item.Links) //reddit only has one which links to the comments of the post
+                                        {
+                                            _client.Log.Info("Feed", $"New article: {item.Title}");
+                                            Console.WriteLine(item.Title);
+                                            Console.WriteLine("Article written at " + feed.Value.LastUpdate);
+                                            Console.WriteLine(link.Uri.OriginalString);
+                                            await channel.SendMessage(link.Uri.OriginalString);
+                                        }
+                                        if (item.LastUpdatedTime.CompareTo(newestArticleTime) > 0)
+                                        {
+                                            newestArticleTime = item.LastUpdatedTime;
+                                        }
                                     }
                                     else
-                                        throw new InvalidOperationException("Unknown feed type.");
-
-                                    articles = articles
-                                        .Where(x => x.PublishedAt > feed.Value.LastUpdate)
-                                        .OrderBy(x => x.PublishedAt)
-                                        .ToArray();
-
-                                    foreach (var article in articles)
                                     {
-                                        _client.Log.Info("Feed", $"New article: {article.Title}");
-                                        Console.WriteLine(article.Title);
-                                        if (article.Link != null)
-                                        {
-                                            try
-                                            {
-                                                await channel.SendMessage(Format.Escape(article.Link));
-                                            }
-                                            catch (HttpException ex) when (ex.StatusCode == HttpStatusCode.Forbidden) { }
-                                        }
+                                        // break; //Assuming feed is sorted. Like reddits
+                                        // might as well do nothing and be safe.
+                                    }
 
-                                        if (article.PublishedAt > feed.Value.LastUpdate)
-                                        {
-                                            feed.Value.LastUpdate = article.PublishedAt;
-                                            Console.WriteLine("Article written at " + feed.Value.LastUpdate);
-                                            await _settings.Save(settings.Key, settings.Value);
-                                        }
-                                    };
-                                
+                                }
+                                feed.Value.LastUpdate = newestArticleTime;
+                                Console.WriteLine("Setting Updatetime to newest Article " + feed.Value.LastUpdate);
+                                await _settings.Save(settings.Key, settings.Value);
                             }
-                            catch (Exception ex) when (!(ex is TaskCanceledException))
+                            catch(Exception ex) when (!(ex is TaskCanceledException))
                             {
                                 _client.Log.Error("Feed", ex);
                             }
-                        }
+
+
+
                     }
-                    await Task.Delay(2000, cancelToken);
-                    //await Task.Delay(1000 * 300, cancelToken); //Wait 5 minutes between updates
+                        await Task.Delay(2000, cancelToken);
+                        //await Task.Delay(1000 * 300, cancelToken); //Wait 5 minutes between updates
+                    }
                 }
             }
             catch (TaskCanceledException) { }
