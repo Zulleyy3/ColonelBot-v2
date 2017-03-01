@@ -19,26 +19,20 @@ namespace ColonelBot.Modules.Feeds
 {
     class FeedModule : IModule
     {
-        public class Article
-        {
-            public string Title;
-            public string Link;
-            public DateTimeOffset PublishedAt;
-        }
-
         private ModuleManager _manager;
         private DiscordClient _client;
         private bool _isRunning;
-        private HttpService _http;
         private SettingsManager<Settings> _settings;
 
+        private const int TIME_BETWEEN_UPDATES = 60000 * 5; //Update every 5 minutes.
 
         void IModule.Install(ModuleManager manager)
         {
             Console.WriteLine("Installed Feeds Module.");
+
+
             _manager = manager;
             _client = manager.Client;
-            _http = _client.GetService<HttpService>();
             _settings = _client.GetService<SettingsService>().AddModule<FeedModule, Settings>(manager);
 
             manager.CreateCommands("feeds", group =>
@@ -50,23 +44,23 @@ namespace ColonelBot.Modules.Feeds
                     {
                         var settings = _settings.Load(e.Server);
                         Channel channel;
-                        if (e.Args[1] != "")
-                        {
-                            channel = _client.GetChannel(210751707431305217);
-                            Console.WriteLine("connected to 210751707431305217");
+                    if (e.Args[1] != "")
+                    {
+                        channel = e.Server.GetChannel(Convert.ToUInt64(e.Args[1]));
+                        Console.WriteLine($"connected to {e.Args[1]} " );
                         }
                         else
                             channel = e.Channel;
                         if (channel == null)
                         {
-                            Console.WriteLine("invalid");
+                            Console.WriteLine("invalid ChannelID");
+                            await e.Channel.SendMessage("Invalid ChannelID");
                             return;
                         }
                         if (settings.AddFeed(e.Args[0], channel.Id))
                         {
-                            Console.WriteLine("you actually go here?");
                             await _settings.Save(e.Server, settings);
-                            await e.Channel.SendMessage($"Linked feed {e.Args[0]} to {channel.Name}");
+                            await e.Channel.SendMessage($"Linked feed {e.Args[0]} to #{channel.Name}");
                         }
                         else
                             await e.Channel.SendMessage($"Feed {e.Args[0]} is already linked to a channel.");
@@ -119,10 +113,10 @@ namespace ColonelBot.Modules.Feeds
                                 {
                                     if (item.LastUpdatedTime.CompareTo(feed.Value.LastUpdate) > 0)
                                     {
-                                        foreach(SyndicationLink link in item.Links) //reddit only has one which links to the comments of the post
+                                        foreach(SyndicationLink link in item.Links) //reddit only has one link. It links to the comments of the post.
                                         {
                                             _client.Log.Info("Feed", $"New article: {item.Title}");
-                                            Console.WriteLine(item.Title);
+                                            Console.WriteLine(item.Title.Text);
                                             Console.WriteLine("Article written at " + feed.Value.LastUpdate);
                                             Console.WriteLine(link.Uri.OriginalString);
                                             await channel.SendMessage(link.Uri.OriginalString);
@@ -134,14 +128,17 @@ namespace ColonelBot.Modules.Feeds
                                     }
                                     else
                                     {
-                                        // break; //Assuming feed is sorted. Like reddits
+                                        // break; Would be fine the Threads were sorted.
                                         // might as well do nothing and be safe.
                                     }
 
                                 }
-                                feed.Value.LastUpdate = newestArticleTime;
-                                Console.WriteLine("Setting Updatetime to newest Article " + feed.Value.LastUpdate);
-                                await _settings.Save(settings.Key, settings.Value);
+                                if (feed.Value.LastUpdate.CompareTo(newestArticleTime) != 0)
+                                {
+                                    feed.Value.LastUpdate = newestArticleTime;
+                                    Console.WriteLine("Setting Updatetime to newest Article " + feed.Value.LastUpdate);
+                                    await _settings.Save(settings.Key, settings.Value);
+                                }
                             }
                             catch(Exception ex) when (!(ex is TaskCanceledException))
                             {
@@ -151,9 +148,8 @@ namespace ColonelBot.Modules.Feeds
 
 
                     }
-                        await Task.Delay(2000, cancelToken);
-                        //await Task.Delay(1000 * 300, cancelToken); //Wait 5 minutes between updates
-                    }
+                        await Task.Delay(TIME_BETWEEN_UPDATES, cancelToken); 
+                   }
                 }
             }
             catch (TaskCanceledException) { }
